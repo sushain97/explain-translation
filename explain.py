@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 
-import argparse, subprocess, itertools, collections, pprint
-from streamparser.streamparser import parse
+import argparse, subprocess, itertools, collections, pprint, sys
+try:
+    from streamparser.streamparser import parse
+except ImportError:
+    print('Please run $ git submodule update --init')
+    sys.exit(-1)
 
 def analyzeText(text, locPair, pair, directory=None):
     p1 = subprocess.Popen(['echo', text], stdout=subprocess.PIPE)
