@@ -29,6 +29,16 @@ optional arguments:
   -t, --table           prints reference table of characters
 ```
 
+Usage
+-----
+Since `explain.py` relies on a dependency in a submodule, remember to add the flag `--recursive` to your `git clone`. For example,
+
+    git clone --recursive https://github.com/sushain97/explain-translation.git
+
+If you get the error `ImportError: No module named 'streamparser.streamparser'`, pull down the submodule using
+
+    git submodule update --init
+
 An Example
 ----------
 ```
