@@ -26,19 +26,20 @@ def translateText(text, pair, directory=None):
     return p2.communicate()[0].decode('utf-8').strip()
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Apertium translation parts")
-    parser.add_argument('sourceLanguage', help="source language")
-    parser.add_argument('targetLanguage', help="target language")
+    parser = argparse.ArgumentParser(description='Apertium translation parts')
+    parser.add_argument('sourceLanguage', help='source language')
+    parser.add_argument('targetLanguage', help='target language')
     parser.add_argument('text', help="input text", metavar='S')
-    parser.add_argument('-m', '--maxSourceLength', help="maximum length of whole-word subsegments (for source text)", type=int, default=5)
+    parser.add_argument('-m', '--maxSourceLength', help='maximum length of whole-word subsegments (for source text)', type=int, default=5)
     parser.add_argument('-M', '--maxTranslationLength', help='maximum length of whole word subsegments (for translated text)', type=int, default=5)
-    parser.add_argument('-d', '--directory', help="directory of Apertium language pair", default=None)
+    parser.add_argument('-d', '--directory', help='directory of Apertium language pair', default=None)
     parser.add_argument('-t', '--table', help='prints reference table of characters', action='store_true', default=False)
+    parser.add_argument('-i', '--ignoreCase', help='ignore case in analyzations (use lower always)', action='store_true', default=False)
     args = parser.parse_args()
 
     pair = (args.sourceLanguage, args.targetLanguage)
 
-    sourceText = args.text #S
+    sourceText = args.text.lower() if args.ignoreCase else args.text #S
     analyzedSourceText = analyzeText(sourceText, pair, pair, directory=args.directory)
     analyzedSourceUnits = list(parse(analyzedSourceText, withText=True))
 
@@ -53,6 +54,8 @@ if __name__ == '__main__':
             analyzedSourceUnitsSubsegments.append((analyzedSourceUnits[startIndex:lastIndex+1], startIndex, lastIndex)) #s, i, j (analyzed units forms of them)
 
     translatedText = translateText(sourceText, pair, directory=args.directory)
+    if args.ignoreCase:
+        translatedText = translatedText.lower()
     analyzedTranslation = analyzeText(translatedText, pair, pair[::-1], directory=args.directory)
     analyzedTranslationUnits = list(parse(analyzedTranslation, withText=True))
 
@@ -73,9 +76,15 @@ if __name__ == '__main__':
         startIndexInSourceText = sum(list(map(lambda x: len(x[0]) + len(x[1].wordform), analyzedSourceUnits[:startIndexInUnits]))) + len(analyzedSourceUnitsSubsegment[0][0]) #i
         lastIndexInSourceText = sum(list(map(lambda x: len(x[0]) + len(x[1].wordform), analyzedSourceUnits[:lastIndexInUnits+1]))) - 1 #j
 
+        if args.ignoreCase:
+            sourceTextSubsegment = sourceTextSubsegment.lower()
+
         translatedTextSubsegment = translateText(sourceTextSubsegment, pair, directory=args.directory) #t
+        if args.ignoreCase:
+            translatedTextSubsegment = translatedTextSubsegment.lower()
         analyzedTranslatedTextSubsegment = analyzeText(translatedTextSubsegment, pair, pair[::-1], directory=args.directory)
         analyzedTranslatedTextSubsegmentUnits = list(parse(analyzedTranslatedTextSubsegment, withText=True))
+        #pprint.pprint(analyzedTranslatedTextSubsegmentUnits)
 
         subsegmentMatches = list(filter(lambda x: list(map(lambda y: str(y[1]), x[0])) == list(map(lambda z: str(z[1]), analyzedTranslatedTextSubsegmentUnits)) , analyzedTranslationUnitsSubsegments))
         if subsegmentMatches:
